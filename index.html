@@ -219,7 +219,7 @@ const ADMIN_EMAILS=[
 ];
 // Hardware/Firmware + Adhesion people: full data access, no chat.
 const FULL_EMAILS=[
-  "padmalaya@temple.com","tanmay.jain@temple.com"
+  "padmalaya@temple.com"
   // add more hardware/firmware / adhesion emails here
 ];
 function roleFor(email){
@@ -281,7 +281,7 @@ function visibleRecords(){
 function enterApp(){
   document.getElementById("login-view").hidden=true;
   document.getElementById("app-view").hidden=false;
-  const label=isAdmin()?"admin":(isFull()?"full access":"team member");
+  const label=isAdmin()?"admin":(isFull()?"Hardware/Adhesion":"team member");
   document.getElementById("who-tag").innerHTML=`<b>${esc(SESSION.email)}</b> · ${label} <button class="logout-btn" onclick="logout()" style="margin-left:8px;">sign out</button>`;
   document.getElementById("tab-members").hidden=false;
   renderTeamGrid();renderMemberGrid();route();
