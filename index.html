@@ -256,10 +256,21 @@ function stackBar(groups, onClickFn, activeKey){ // groups: {label: rows}; onCli
       `</div></div>`;}).join('')+'</div>';
 }
 
-function openTeam(t){state.view='team';state.sel=t;state.subtab='overview';state.fSub=null;state.fClass=null;render();}
-function openMember(m){state.view='member';state.sel=m;state.fClass=null;render();}
+function pushHist(){ // record current view in browser history so back-swipe/back-button steps within the app
+  try{history.pushState({view:state.view,tab:state.tab,sel:state.sel,subtab:state.subtab,fSub:state.fSub,fClass:state.fClass},"");}catch(e){}
+}
+function openTeam(t){pushHist();state.view='team';state.sel=t;state.subtab='overview';state.fSub=null;state.fClass=null;render();}
+function openMember(m){pushHist();state.view='member';state.sel=m;state.fClass=null;render();}
 function setTab(t){state.tab=t;render();}
-function goHome(){state.view='home';state.sel=null;render();}
+function goHome(){pushHist();state.view='home';state.sel=null;render();}
+// When the user presses back (or Mac two-finger back-swipe), restore the previous in-app view instead of leaving the page.
+window.addEventListener("popstate",function(e){
+  if(!(SESSION&&SESSION.email))return; // if signed out, let the browser navigate normally
+  const s=e.state;
+  if(s&&s.view){state.view=s.view;state.tab=s.tab;state.sel=s.sel;state.subtab=s.subtab;state.fSub=s.fSub;state.fClass=s.fClass;}
+  else{state.view='home';state.sel=null;} // base entry = home
+  render();
+});
 function setSub(s){state.fSub=state.fSub==s?null:s;render();}
 function setClass(c){state.fClass=state.fClass==c?null:c;render();}
 function setSubtab(s){state.subtab=s;render();}
@@ -318,6 +329,8 @@ function render(){
   window.scrollTo(0,0);
 }
 (function(){
+  // Seed a base history entry representing the home view, so the first back-press returns to home instead of leaving the page.
+  try{history.replaceState({view:'home',tab:'team',sel:null,subtab:'overview',fSub:null,fClass:null},"");}catch(e){}
   if(SESSION&&SESSION.email){SESSION={email:SESSION.email,role:roleFor(SESSION.email)};enterApp();}
   else{document.getElementById("login-view").hidden=false;initGoogleSignIn();}
 })();
