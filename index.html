@@ -91,6 +91,7 @@ tr:hover td{background:var(--espresso2)}
 .copen{margin-top:14px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--bronze);font-weight:600}
 
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+[hidden]{display:none !important}
 .login-card{background:var(--espresso);border:1px solid var(--espresso3);border-radius:20px;padding:44px 40px;max-width:420px;width:100%;text-align:center}
 .login-title{font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--ink);margin-bottom:10px}
 .login-sub{font-size:14px;color:var(--ink-dim);margin-bottom:28px;line-height:1.55}
@@ -297,6 +298,11 @@ function memberView(){
 }
 
 function render(){
+  // Always enforce correct view visibility so navigation never re-shows the login screen.
+  if(SESSION&&SESSION.email){
+    document.getElementById("login-view").hidden=true;
+    document.getElementById("app-view").hidden=false;
+  }
   if(state.view=='home')home();
   else if(state.view=='team')teamView();
   else if(state.view=='member')memberView();
