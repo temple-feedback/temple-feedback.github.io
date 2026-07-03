@@ -110,13 +110,7 @@ tr:hover td{background:var(--espresso2)}
   <div class="login-card">
     <div class="login-title">Member Feedback</div>
     <div class="login-sub">Sign in with your Temple Google account to continue.</div>
-    <div id="g_id_onload"
-      data-client_id="667916747255-7m7o2oal769bdoaqe4n5t3upfbm84oag.apps.googleusercontent.com"
-      data-callback="handleGoogleSignIn"
-      data-auto_prompt="false"></div>
-    <div class="gsi-wrap">
-      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left" data-width="300"></div>
-    </div>
+    <div class="gsi-wrap"><div id="gsi-button"></div></div>
     <div class="login-err" id="login-err">That email isn't on the access list. Contact your admin.</div>
   </div>
 </div>
@@ -148,15 +142,42 @@ function isAdmin(){return SESSION&&SESSION.role==="admin";}
 function isFull(){return SESSION&&SESSION.role==="full";}
 function canSeeSensitive(){return isAdmin()||isFull();}
 function visibleRecords(){return canSeeSensitive()?DATA.records:DATA.records.filter(r=>String(r.sensitive).toUpperCase()!=="TRUE");}
+const GOOGLE_CLIENT_ID="667916747255-7m7o2oal769bdoaqe4n5t3upfbm84oag.apps.googleusercontent.com";
+function showLoginErr(msg){const e=document.getElementById("login-err");if(e){e.textContent=msg;e.classList.add("show");}}
 function handleGoogleSignIn(response){
-  const payload=decodeJwt(response.credential);const errEl=document.getElementById("login-err");
-  if(!payload||!payload.email||!payload.email_verified){errEl.textContent="Could not verify your Google account. Please try again.";errEl.classList.add("show");return;}
+  const errEl=document.getElementById("login-err");
+  if(!response||!response.credential){showLoginErr("Sign-in didn't complete. Please try again.");return;}
+  const payload=decodeJwt(response.credential);
+  if(!payload||!payload.email||!payload.email_verified){showLoginErr("Could not verify your Google account. Please try again.");return;}
   const email=payload.email.toLowerCase();
-  if(!email.endsWith("@temple.com")){errEl.textContent="Please sign in with your @temple.com Google account.";errEl.classList.add("show");return;}
+  if(!email.endsWith("@temple.com")){showLoginErr("Please sign in with your @temple.com Google account.");return;}
   errEl.classList.remove("show");
   SESSION={email,role:roleFor(email)};
   try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(SESSION));}catch(e){}
   enterApp();}
+// Explicit GSI initialization — more reliable than data-attribute auto-init, enables FedCM,
+// and surfaces errors instead of silently stalling after account selection.
+function initGoogleSignIn(){
+  if(!(window.google&&google.accounts&&google.accounts.id)){
+    // GSI script not ready yet — retry shortly.
+    return setTimeout(initGoogleSignIn,200);
+  }
+  try{
+    google.accounts.id.initialize({
+      client_id:GOOGLE_CLIENT_ID,
+      callback:handleGoogleSignIn,
+      use_fedcm_for_prompt:true,
+      auto_select:false,
+      cancel_on_tap_outside:true
+    });
+    const btn=document.getElementById("gsi-button");
+    if(btn){
+      google.accounts.id.renderButton(btn,{type:"standard",size:"large",theme:"filled_black",text:"signin_with",shape:"rectangular",logo_alignment:"left",width:300});
+    }
+  }catch(e){
+    showLoginErr("Google Sign-In failed to load. Check your connection and refresh. ("+(e&&e.message?e.message:e)+")");
+  }
+}
 function logout(){SESSION=null;try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}
   document.getElementById("app-view").hidden=true;document.getElementById("login-view").hidden=false;
   if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}
@@ -283,7 +304,7 @@ function render(){
 }
 (function(){
   if(SESSION&&SESSION.email){SESSION={email:SESSION.email,role:roleFor(SESSION.email)};enterApp();}
-  else{document.getElementById("login-view").hidden=false;}
+  else{document.getElementById("login-view").hidden=false;initGoogleSignIn();}
 })();
 </script>
 </body>
