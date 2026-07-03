@@ -53,6 +53,8 @@ h1 .f{color:var(--bronze-dim)}
 .rowbar-active{background:var(--espresso2,rgba(255,255,255,.08))}
 .rowbar-active .lbl{color:var(--ink);font-weight:600}
 .row-bar .lbl{font-size:12.5px;color:var(--ink-dim);text-align:right}
+.row-bar .lbl-name{font-size:14px;font-weight:700;color:var(--ink)}
+.row-bar .lbl-count{color:var(--ink-dim);font-weight:400}
 .bar{display:flex;height:20px;border-radius:5px;overflow:hidden;background:var(--espresso3)}
 .bar span{display:block;height:100%}
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 16px}
@@ -248,7 +250,7 @@ function stackBar(groups, onClickFn, activeKey){ // groups: {label: rows}; onCli
     const c=countClass(groups[k]);const tot=groups[k].length;
     const clickable = onClickFn ? ` onclick="${onClickFn}('${esc(k)}')" style="cursor:pointer"` : '';
     const active = activeKey===k ? ' rowbar-active' : '';
-    return `<div class="row-bar${active}"${clickable}><div class="lbl">${esc(k)} · ${tot}</div>
+    return `<div class="row-bar${active}"${clickable}><div class="lbl"><span class="lbl-name">${esc(k)}</span> <span class="lbl-count">· ${tot}</span></div>
       <div class="bar" style="width:${tot/max*100}%">`+
       CLASS_ORDER.map(cl=>c[cl]?`<span title="${cl}: ${c[cl]}" style="width:${c[cl]/tot*100}%;background:${CLASS_COL[cl]}"></span>`:'').join('')+
       `</div></div>`;}).join('')+'</div>';
